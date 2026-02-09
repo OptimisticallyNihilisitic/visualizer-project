@@ -33,7 +33,6 @@ function App() {
 
       setColumns(extractedColumns);
       setRows(jsonData);
-      // show all columns by default:
       //setSelectedColumns(extractedColumns);
     };
 
@@ -50,7 +49,6 @@ function App() {
 
   return (
     <div className="app">
-      {/* Input Section */}
       <div className="top-bar">
         <input
           type="file"
@@ -60,14 +58,11 @@ function App() {
       </div>
 
       <div className="main">
-        {/* Category Panel */}
         <SidePanel 
           columns = {columns}
           selectedColumns={selectedColumns}
           toggleColumn={toggleColumn}
         />
-
-        {/* Data Panel */}
         <DataPanel 
           selectedColumns={selectedColumns}
           rows={rows}
