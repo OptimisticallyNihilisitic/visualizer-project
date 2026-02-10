@@ -33,7 +33,7 @@ function App() {
 
       setColumns(extractedColumns);
       setRows(jsonData);
-      //setSelectedColumns(extractedColumns);
+      setSelectedColumns(extractedColumns);
     };
 
     reader.readAsText(file);
