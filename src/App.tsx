@@ -3,6 +3,10 @@ import * as XLSX from "xlsx";
 import "./App.css";
 import { SidePanel } from "./components/SidePanel";
 import { DataPanel } from "./components/DataPanel";
+import { SelectorPanel } from "./components/SelectorPanel";
+import { DndContext } from "@dnd-kit/core";
+import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
+import { DragOverlay } from "@dnd-kit/core";
 
 type RowData = Record<string, any>;
 
@@ -10,6 +14,12 @@ function App() {
   const [columns, setColumns] = useState<string[]>([]);
   const [rows, setRows] = useState<RowData[]>([]);
   const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
+  const [rowFields, setRowFields] = useState<string[]>([]);
+  const [columnFields, setColumnFields] = useState<string[]>([]);
+  const [valueFields, setValueFields] = useState<string[]>([]);
+  const [activeField, setActiveField] = useState<string | null>(null);
+
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -33,19 +43,46 @@ function App() {
 
       setColumns(extractedColumns);
       setRows(jsonData);
-      //setSelectedColumns(extractedColumns);
     };
 
     reader.readAsText(file);
   };
 
-  const toggleColumn = (column: string) => {
-    setSelectedColumns((prev) =>
-      prev.includes(column)
-        ? prev.filter((c) => c !== column)
-        : [...prev, column]
-    );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const field = event.active.data.current?.field;
+    if (field) setActiveField(field);
   };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveField(null); 
+
+    if (!over) return;
+
+    const field = active.data.current?.field;
+    if (!field) return;
+
+    if (over.id === "rows") {
+      setRowFields((prev) => [...new Set([...prev, field])]);
+    }
+    if (over.id === "columns") {
+      setColumnFields((prev) => [...new Set([...prev, field])]);
+    }
+    if (over.id === "values") {
+      setValueFields((prev) => [...new Set([...prev, field])]);
+    }
+  };
+
+  const removeRow = (item: string) =>
+    setRowFields((prev) => prev.filter((f) => f !== item));
+
+  const removeColumn = (item: string) =>
+    setColumnFields((prev) => prev.filter((f) => f !== item));
+
+  const removeValue = (item: string) =>
+    setValueFields((prev) => prev.filter((f) => f !== item));
+
 
   return (
     <div className="app">
@@ -57,17 +94,32 @@ function App() {
         />
       </div>
 
-      <div className="main">
-        <SidePanel 
-          columns = {columns}
-          selectedColumns={selectedColumns}
-          toggleColumn={toggleColumn}
-        />
-        <DataPanel 
-          selectedColumns={selectedColumns}
-          rows={rows}
-        />
-      </div>
+      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="main">
+          <SidePanel columns={columns} />
+          <SelectorPanel
+            rows={rowFields}
+            columns={columnFields}
+            values={valueFields}
+            removeRow={removeRow}
+            removeColumn={removeColumn}
+            removeValue={removeValue}
+          />
+
+          <DataPanel 
+            selectedColumns={selectedColumns}
+            rows={rows}
+          />
+        </div>
+
+        <DragOverlay dropAnimation={null}>
+          {activeField ? (
+            <div className="drag-overlay">
+              {activeField}
+            </div>
+          ) : null}
+        </DragOverlay>
+    </DndContext>
     </div>
   );
 }

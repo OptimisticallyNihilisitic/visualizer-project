@@ -30,11 +30,12 @@ body {
 
 
 .sidebar {
-  width: 240px;
+  width: 200px;
   background-color: #ffffff;
   border-right: 1px solid #e5e7eb;
   padding: 16px;
   overflow-y: auto;
+  z-index: 10;
 }
 
 .sidebar h4 {
@@ -45,6 +46,15 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+.selectorbar {
+  width: 200px;
+  background-color: #6b7280;
+  border-right: 1px solid #e5e7eb;
+  padding: 16px;
+  overflow-y: auto;
+}
+
 
 .column-item {
   display: flex;
@@ -119,3 +129,12 @@ tbody tr:hover {
   background-color: #eef2ff;
 }
 
+.drag-overlay {
+  padding: 8px 12px;
+  background: #979ea4;
+  opacity: 0.8;
+  color: white;
+  border-radius: 4px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  cursor: grabbing;
+}
