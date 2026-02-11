@@ -106,10 +106,13 @@ function App() {
             removeValue={removeValue}
           />
 
-          <DataPanel 
-            selectedColumns={selectedColumns}
+          <DataPanel
             rows={rows}
+            rowFields={rowFields}
+            columnFields={columnFields}
+            valueFields={valueFields}
           />
+
         </div>
 
         <DragOverlay dropAnimation={null}>

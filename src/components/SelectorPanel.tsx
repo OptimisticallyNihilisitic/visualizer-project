@@ -39,7 +39,16 @@ function DropBucket({
             borderRadius: "4px",
           }}
         >
-          <span>{item}</span>
+          <span 
+            style={{whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: "200px"}
+            }
+            title={item}
+          >
+            {item}
+          </span>
           <button
             onClick={() => onRemove(item)}
             style={{
