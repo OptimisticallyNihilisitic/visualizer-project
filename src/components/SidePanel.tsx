@@ -6,7 +6,7 @@ function DraggableField({ name }: { name: string }) {
     id: name,
     data: { field: name },
   });
-
+ 
   const style = {
     transform: CSS.Translate.toString(transform),
     padding: "2px",

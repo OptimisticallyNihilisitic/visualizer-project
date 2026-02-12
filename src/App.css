@@ -85,6 +85,7 @@ html, body, #root {
 .content {
   flex: 1;
   padding: 16px;
+  width: 100%;
   overflow: auto;
   background-color: #f9fafb;
   width: calc(100dvw - 400px);

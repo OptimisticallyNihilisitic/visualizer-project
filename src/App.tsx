@@ -7,13 +7,12 @@ import { SelectorPanel } from "./components/SelectorPanel";
 import { DndContext } from "@dnd-kit/core";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { DragOverlay } from "@dnd-kit/core";
-
+ 
 type RowData = Record<string, any>;
 
 function App() {
   const [columns, setColumns] = useState<string[]>([]);
   const [rows, setRows] = useState<RowData[]>([]);
-  const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
   const [rowFields, setRowFields] = useState<string[]>([]);
   const [columnFields, setColumnFields] = useState<string[]>([]);
   const [valueFields, setValueFields] = useState<string[]>([]);

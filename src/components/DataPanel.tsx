@@ -47,7 +47,7 @@ export const DataPanel: React.FC<DataPanelProps> = ({
     return (
       <div className="content">Drag fields into Rows, Columns and Values</div>
     );
-  }
+  } 
 
   const valueField = valueFields[0]; // single value for now
 
