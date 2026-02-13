@@ -7,7 +7,7 @@ import { SelectorPanel } from "./components/SelectorPanel";
 import { DndContext } from "@dnd-kit/core";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { DragOverlay } from "@dnd-kit/core";
- 
+
 type RowData = Record<string, any>;
 
 function App() {
