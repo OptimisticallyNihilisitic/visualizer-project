@@ -14,7 +14,7 @@ function DraggableField({ name }: { name: string }) {
     background: "#ffffff",
     color: "black",
     borderRadius: "4px",
-    fontSize: "14px",
+    fontSize: "12px",
     cursor: "grab",
 
     whiteSpace: "nowrap",

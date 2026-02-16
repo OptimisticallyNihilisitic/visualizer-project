@@ -18,8 +18,6 @@ function App() {
   const [valueFields, setValueFields] = useState<string[]>([]);
   const [activeField, setActiveField] = useState<string | null>(null);
 
-
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -30,23 +28,31 @@ function App() {
       const data = e.target?.result;
       if (!data) return;
 
-      const workbook = XLSX.read(data, { type: "string" });
+      const workbook = XLSX.read(data, { type: "array" });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
 
       const jsonData = XLSX.utils.sheet_to_json<RowData>(worksheet);
 
-      if (jsonData.length === 0) return;
+      if (jsonData.length === 0) {
+        setColumns([]);
+        setRows([]);
+        return;
+      }
 
       const extractedColumns = Object.keys(jsonData[0]);
 
-      setColumns(extractedColumns);
-      setRows(jsonData);
+      setColumns([...extractedColumns]);
+      setRows([...jsonData]);
+
+      setRowFields([]);
+      setColumnFields([]);
+      setValueFields([]);
     };
 
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
+    event.target.value = "";
   };
-
 
   const handleDragStart = (event: DragStartEvent) => {
     const field = event.active.data.current?.field;
@@ -55,7 +61,7 @@ function App() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveField(null); 
+    setActiveField(null);
 
     if (!over) return;
 
@@ -65,9 +71,11 @@ function App() {
     if (over.id === "rows") {
       setRowFields((prev) => [...new Set([...prev, field])]);
     }
+
     if (over.id === "columns") {
       setColumnFields((prev) => [...new Set([...prev, field])]);
     }
+
     if (over.id === "values") {
       setValueFields((prev) => [...new Set([...prev, field])]);
     }
@@ -82,20 +90,25 @@ function App() {
   const removeValue = (item: string) =>
     setValueFields((prev) => prev.filter((f) => f !== item));
 
-
   return (
     <div className="app">
       <div className="top-bar">
-        <input
-          type="file"
-          accept=".xlsx,.xls,.csv"
-          onChange={handleFileChange}
-        />
+        <label className="custom-file-upload">
+          Upload File
+          <input
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={handleFileChange}
+            hidden
+          />
+        </label>
       </div>
+      
 
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="main">
           <SidePanel columns={columns} />
+
           <SelectorPanel
             rows={rowFields}
             columns={columnFields}
@@ -111,7 +124,6 @@ function App() {
             columnFields={columnFields}
             valueFields={valueFields}
           />
-
         </div>
 
         <DragOverlay dropAnimation={null}>
@@ -121,10 +133,9 @@ function App() {
             </div>
           ) : null}
         </DragOverlay>
-    </DndContext>
+      </DndContext>
     </div>
   );
 }
 
 export default App;
-

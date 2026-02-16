@@ -23,8 +23,9 @@ function DropBucket({
         background: isOver ? "#e3f2fd" : "white",
         minHeight: "40px",
       }}
+      className="selectorbar"
     >
-      <strong>{title}</strong>
+      <strong className="column-title">{title}</strong>
 
       {items.map((item) => (
         <div
@@ -43,9 +44,10 @@ function DropBucket({
             style={{whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              maxWidth: "200px"}
+              maxWidth: "150px"}
             }
             title={item}
+            className="selectorpanel-item"
           >
             {item}
           </span>
