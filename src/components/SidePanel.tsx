@@ -16,12 +16,10 @@ function DraggableField({ name }: { name: string }) {
     borderRadius: "4px",
     fontSize: "12px",
     cursor: "grab",
-
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
     maxWidth: "200px",
-
     opacity: isDragging ? 0 : 1,
   };
 

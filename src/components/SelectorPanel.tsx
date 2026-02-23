@@ -92,5 +92,4 @@ export const SelectorPanel = ({
       <DropBucket id="values" title="Values" items={values} onRemove={removeValue} />
     </div>
   );
-};
-
+}; 

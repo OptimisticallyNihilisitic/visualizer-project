@@ -7,7 +7,7 @@ import { SelectorPanel } from "./components/SelectorPanel";
 import { DndContext } from "@dnd-kit/core";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { DragOverlay } from "@dnd-kit/core";
-
+ 
 type RowData = Record<string, any>;
 
 function App() {
@@ -58,7 +58,7 @@ function App() {
     const field = event.active.data.current?.field;
     if (field) setActiveField(field);
   };
-
+ 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveField(null);

@@ -55,7 +55,7 @@ function aggregate(
 
   data.forEach((row) => {
     const colKey =
-      columnFields.map((f) => row[f]).join(" | ") || "Total";
+      columnFields.map((f) => row[f]).join(" | ") || "Total"; // [2021|AA]
 
     const rawValue = row[valueField];
 
@@ -66,8 +66,8 @@ function aggregate(
     if (isNaN(value)) return;
 
     if (!result[colKey]) result[colKey] = 0;
-    result[colKey] += value;
-  });
+    result[colKey] += value;  // result["2021 | AA"] = 300
+  }); 
 
   return result;
 }
@@ -100,9 +100,13 @@ export const DataPanel: React.FC<DataPanelProps> = ({
     );
   }, [rows, columnFields]);
 
+  const grandTotal = useMemo(() => {
+    if (!valueField) return {};
+    return aggregate(rows, columnFields, valueField);
+  }, [rows, columnFields, valueField]);
+
   const visibleRows = useMemo(() => {
     const result: any[] = [];
-
     function traverse(nodes: any[], parentPath = "") {
       nodes.forEach((node) => {
         const path = parentPath
@@ -168,7 +172,24 @@ export const DataPanel: React.FC<DataPanelProps> = ({
               ))}
             </tr>
           </thead>
+
           <tbody>
+            <tr
+              style={{
+                fontWeight: "bold",
+                backgroundColor: "#f3f4f6",
+              }}
+            >
+              <td>All</td>
+              {columnKeys.map((col) => (
+                <td key={col}>
+                  {grandTotal[col] !== undefined
+                    ? grandTotal[col]
+                    : ""}
+                </td>
+              ))}
+            </tr>
+
             {paginatedRows.map((node, index) => {
               const agg = aggregate(
                 node.data,
@@ -186,7 +207,6 @@ export const DataPanel: React.FC<DataPanelProps> = ({
                   <td
                     style={{
                       paddingLeft: 16 + node.level * 18,
-                      fontWeight: "normal",
                       cursor: isExpandable
                         ? "pointer"
                         : "default",
@@ -209,7 +229,9 @@ export const DataPanel: React.FC<DataPanelProps> = ({
 
                   {columnKeys.map((col) => (
                     <td key={col}>
-                      {agg[col] !== undefined ? agg[col] : ""}
+                      {agg[col] !== undefined
+                        ? agg[col]
+                        : ""}
                     </td>
                   ))}
                 </tr>
@@ -218,7 +240,14 @@ export const DataPanel: React.FC<DataPanelProps> = ({
           </tbody>
         </table>
 
-        <div style={{ marginTop: 15, display: "flex", alignItems: "center", gap: 15 }}>
+        <div
+          style={{
+            marginTop: 15,
+            display: "flex",
+            alignItems: "center",
+            gap: 15,
+          }}
+        >
           <div>
             Rows per page:{" "}
             <select
