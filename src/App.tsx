@@ -1,24 +1,51 @@
-import { useState } from "react";
+import { useRef } from "react";
 import * as XLSX from "xlsx";
 import "./App.css";
 import { SidePanel } from "./components/SidePanel";
 import { DataPanel } from "./components/DataPanel";
-import type { AggType } from "./components/DataPanel";
 import { SelectorPanel } from "./components/SelectorPanel";
-import { DndContext } from "@dnd-kit/core";
+import { DndContext, DragOverlay } from "@dnd-kit/core";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
-import { DragOverlay } from "@dnd-kit/core";
+import { useState } from "react";
+import { useAppDispatch, useAppSelector } from "./store/hooks";
+import { dataActions, pivotActions, uiActions, cacheActions } from "./store/store";
+import { buildPivotCache } from "./store/buildCache";
 
 type RowData = Record<string, any>;
 
-function App() {
-  const [columns, setColumns] = useState<string[]>([]);
-  const [rows, setRows] = useState<RowData[]>([]);
-  const [rowFields, setRowFields] = useState<string[]>([]);
-  const [columnFields, setColumnFields] = useState<string[]>([]);
-  const [valueFields, setValueFields] = useState<string[]>([]);
+function inferType(values: any[]): "numeric" | "date" | "string" {
+  const sample = values.filter((v) => v !== null && v !== undefined && v !== "").slice(0, 50);
+  const numericCount = sample.filter((v) => !isNaN(Number(v))).length;
+  if (numericCount / sample.length > 0.8) return "numeric";
+  const dateCount = sample.filter((v) => !isNaN(Date.parse(String(v)))).length;
+  if (dateCount / sample.length > 0.8) return "date";
+  return "string";
+}
+
+export default function App() {
+  // Raw data lives in a ref — never triggers re-renders
+  const rowsRef = useRef<RowData[]>([]);
   const [activeField, setActiveField] = useState<string | null>(null);
-  const [aggType, setAggType] = useState<AggType>("sum");
+  const dispatch = useAppDispatch();
+
+  const pivotState = useAppSelector((s) => s.pivot);
+  const columns = useAppSelector((s) => s.data.columns);
+  const usedFields = new Set([...pivotState.rowFields, ...pivotState.columnFields, ...pivotState.valueFields]);
+  const availableColumns = columns.filter((c) => !usedFields.has(c));
+
+  const rebuildCache = (
+    rows: RowData[],
+    rowFields: string[],
+    columnFields: string[],
+    valueFields: string[]
+  ) => {
+    if (!rowFields.length || !valueFields.length) {
+      dispatch(cacheActions.clearCache());
+      return;
+    }
+    const cache = buildPivotCache(rows, rowFields, columnFields, valueFields);
+    dispatch(cacheActions.setCache(cache));
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -31,49 +58,89 @@ function App() {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json<RowData>(worksheet);
-      if (jsonData.length === 0) { setColumns([]); setRows([]); return; }
-      setColumns(Object.keys(jsonData[0]));
-      setRows([...jsonData]);
-      setRowFields([]); setColumnFields([]); setValueFields([]);
+      if (!jsonData.length) return;
+
+      rowsRef.current = jsonData;
+
+      const cols = Object.keys(jsonData[0]);
+      const columnTypes: Record<string, "numeric" | "string" | "date"> = {};
+      cols.forEach((col) => {
+        columnTypes[col] = inferType(jsonData.map((r) => r[col]));
+      });
+
+      dispatch(dataActions.setColumns({ columns: cols, columnTypes }));
+      dispatch(pivotActions.resetPivot());
+      dispatch(uiActions.resetUI());
+      dispatch(cacheActions.clearCache());
     };
     reader.readAsArrayBuffer(file);
     event.target.value = "";
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    const field = event.active.data.current?.field;
-    if (field) setActiveField(field);
+    setActiveField(event.active.data.current?.field ?? null);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveField(null);
     if (!over) return;
-    const field = active.data.current?.field;
+    const field = active.data.current?.field as string;
     if (!field) return;
-    if (over.id === "rows")    setRowFields((prev) => [...new Set([...prev, field])]);
-    if (over.id === "columns") setColumnFields((prev) => [...new Set([...prev, field])]);
-    if (over.id === "values")  setValueFields((prev) => [...new Set([...prev, field])]);
+
+    let nextRowFields = pivotState.rowFields;
+    let nextColFields = pivotState.columnFields;
+    let nextValFields = pivotState.valueFields;
+
+    if (over.id === "rows") {
+      dispatch(pivotActions.addRowField(field));
+      nextRowFields = [...new Set([...pivotState.rowFields, field])];
+    }
+    if (over.id === "columns") {
+      dispatch(pivotActions.addColumnField(field));
+      nextColFields = [...new Set([...pivotState.columnFields, field])];
+    }
+    if (over.id === "values") {
+      dispatch(pivotActions.addValueField(field));
+      nextValFields = [...new Set([...pivotState.valueFields, field])];
+    }
+
+    dispatch(uiActions.resetUI());
+    rebuildCache(rowsRef.current, nextRowFields, nextColFields, nextValFields);
   };
 
-  const removeRow    = (item: string) => setRowFields((prev) => prev.filter((f) => f !== item));
-  const removeColumn = (item: string) => setColumnFields((prev) => prev.filter((f) => f !== item));
-  const removeValue  = (item: string) => setValueFields((prev) => prev.filter((f) => f !== item));
+  const removeRow = (item: string) => {
+    dispatch(pivotActions.removeRowField(item));
+    dispatch(uiActions.resetUI());
+    const next = pivotState.rowFields.filter((f) => f !== item);
+    rebuildCache(rowsRef.current, next, pivotState.columnFields, pivotState.valueFields);
+  };
 
-  const usedFields = new Set([...rowFields, ...columnFields, ...valueFields]);
-  const availableColumns = columns.filter((c) => !usedFields.has(c));
+  const removeColumn = (item: string) => {
+    dispatch(pivotActions.removeColumnField(item));
+    dispatch(uiActions.resetUI());
+    const next = pivotState.columnFields.filter((f) => f !== item);
+    rebuildCache(rowsRef.current, pivotState.rowFields, next, pivotState.valueFields);
+  };
+
+  const removeValue = (item: string) => {
+    dispatch(pivotActions.removeValueField(item));
+    dispatch(uiActions.resetUI());
+    const next = pivotState.valueFields.filter((f) => f !== item);
+    rebuildCache(rowsRef.current, pivotState.rowFields, pivotState.columnFields, next);
+  };
+
+  const handleAggChange = (agg: import("./types").AggType) => {
+    dispatch(pivotActions.setAggType(agg));
+    // No cache rebuild needed — cache stores all agg types, DataPanel picks the right one
+  };
 
   return (
     <div className="app">
       <div className="top-bar">
         <label className="custom-file-upload">
           ↑ Upload File
-          <input
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            onChange={handleFileChange}
-            hidden
-          />
+          <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileChange} hidden />
         </label>
       </div>
 
@@ -81,32 +148,21 @@ function App() {
         <div className="main">
           <SidePanel columns={availableColumns} />
           <SelectorPanel
-            rows={rowFields}
-            columns={columnFields}
-            values={valueFields}
+            rows={pivotState.rowFields}
+            columns={pivotState.columnFields}
+            values={pivotState.valueFields}
             removeRow={removeRow}
             removeColumn={removeColumn}
             removeValue={removeValue}
-            aggType={aggType}
-            setAggType={setAggType}
+            aggType={pivotState.aggType}
+            setAggType={handleAggChange}
           />
-          <DataPanel
-            rows={rows}
-            rowFields={rowFields}
-            columnFields={columnFields}
-            valueFields={valueFields}
-            aggType={aggType}
-          />
+          <DataPanel rowsRef={rowsRef} />
         </div>
-
         <DragOverlay dropAnimation={null}>
-          {activeField ? (
-            <div className="drag-overlay">{activeField}</div>
-          ) : null}
+          {activeField ? <div className="drag-overlay">{activeField}</div> : null}
         </DragOverlay>
       </DndContext>
     </div>
   );
 }
-
-export default App;
