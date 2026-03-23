@@ -7,18 +7,16 @@ interface DataState {
   columnTypes: Record<string, "numeric" | "string" | "date">;
 }
 
-//All available colValues I store here
+//Raw data: 
 const dataSlice = createSlice({
   name: "data",
   initialState: { columns: [], columnTypes: {} } as DataState,
   reducers: {
-    setColumns(state, action: PayloadAction<{ columns: string[]; columnTypes: Record<string, "numeric" | "string" | "date"> }>) {
+    setColumns(state, action: PayloadAction<{ columns: string[]; }>) {
       state.columns = action.payload.columns;
-      state.columnTypes = action.payload.columnTypes;
     },
     clearData(state) {
       state.columns = [];
-      state.columnTypes = {};
     },
   },
 });
@@ -30,7 +28,8 @@ interface PivotState {
   valueFields: string[];
   aggType: AggType;
 }
-//PivotSlice : for storing pivot table config. and handling changes 
+
+//Pivot Table : for storing pivot table config. and handling changes 
 const pivotSlice = createSlice({
   name: "pivot",
   initialState: { rowFields: [], columnFields: [], valueFields: [], aggType: "sum" } as PivotState,
@@ -102,7 +101,7 @@ const uiSlice = createSlice({
   },
 });
 
-
+//Cache:
 const cacheSlice = createSlice({
   name: "cache",
   initialState: {} as PivotCache,

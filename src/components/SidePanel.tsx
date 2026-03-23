@@ -1,14 +1,13 @@
-import { useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
+import { useDraggableField } from "../hooks/useDraggableField";
 
 function DraggableField({ name }: { name: string }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: name, data: { field: name } });
+  const { attributes, listeners, setNodeRef, style } =
+    useDraggableField(name);
 
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0 : 1 }}
+      style={style}
       title={name}
       className="draggable-field"
       {...listeners}
