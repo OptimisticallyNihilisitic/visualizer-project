@@ -23,16 +23,16 @@ function inferType(values: any[]): "numeric" | "date" | "string" {
 }
 
 export default function App() {
-  // Raw data lives in a ref — never triggers re-renders
   const rowsRef = useRef<RowData[]>([]);
   const [activeField, setActiveField] = useState<string | null>(null);
   const dispatch = useAppDispatch();
 
-  const pivotState = useAppSelector((s) => s.pivot);
+  const pivotState = useAppSelector((s) => s.pivot); //rowField, colField, valueField, aggType
   const columns = useAppSelector((s) => s.data.columns);
   const usedFields = new Set([...pivotState.rowFields, ...pivotState.columnFields, ...pivotState.valueFields]);
   const availableColumns = columns.filter((c) => !usedFields.has(c));
 
+  //When ever the rows, rowField, columnField, valueField change, I am rebuiding the cache
   const rebuildCache = (
     rows: RowData[],
     rowFields: string[],
@@ -132,7 +132,6 @@ export default function App() {
 
   const handleAggChange = (agg: import("./types").AggType) => {
     dispatch(pivotActions.setAggType(agg));
-    // No cache rebuild needed — cache stores all agg types, DataPanel picks the right one
   };
 
   return (

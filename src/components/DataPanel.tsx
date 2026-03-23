@@ -7,7 +7,6 @@ import type { AggType } from "../types";
 
 type RowData = Record<string, any>;
 
-// ─── Column tree (unchanged logic) ───────────────────────────────────────────
 interface ColNode {
   label: string;
   path: string;
@@ -15,7 +14,7 @@ interface ColNode {
   children: ColNode[];
   leafKeys: string[];
 }
-
+ 
 function buildColTree(columnKeys: string[], columnFields: string[]): ColNode[] {
   if (!columnFields.length) {
     return [{ label: "Total", path: "__total__", depth: 0, children: [], leafKeys: ["__total__"] }];
@@ -47,7 +46,6 @@ function flattenVisibleCols(nodes: ColNode[], expandedPaths: Set<string>): ColNo
   return result;
 }
 
-// ─── Row hierarchy ────────────────────────────────────────────────────────────
 function groupRows(data: RowData[], rowFields: string[], level = 0): any[] {
   if (level >= rowFields.length) return [];
   const field = rowFields[level];
@@ -65,14 +63,13 @@ function groupRows(data: RowData[], rowFields: string[], level = 0): any[] {
   }));
 }
 
-// ─── Formatting ───────────────────────────────────────────────────────────────
+//formatting 
 function fmt(v: number | null | undefined, aggType: AggType): string {
   if (v === null || v === undefined) return "";
   if (aggType === "count" || aggType === "countDistinct") return v.toLocaleString();
   return parseFloat(v.toFixed(2)).toLocaleString();
 }
 
-// ─── Get value from cache ─────────────────────────────────────────────────────
 function getCacheVal(
   cache: any,
   rowPath: string,
@@ -88,7 +85,6 @@ function getCacheVal(
   return total;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
 interface DataPanelProps {
   rowsRef: RefObject<RowData[]>;
 }
@@ -103,7 +99,6 @@ export const DataPanel: React.FC<DataPanelProps> = ({ rowsRef }) => {
   const expandedRowsSet = useMemo(() => new Set(expandedRows), [expandedRows]);
   const expandedColsSet = useMemo(() => new Set(expandedCols), [expandedCols]);
 
-  // Build column keys from cache keys (all colKeys stored under __grand__)
   const allColumnKeys = useMemo(() => {
     if (!columnFields.length) return ["__total__"];
     const grandEntry = cache["__grand__"] ?? {};
@@ -113,13 +108,12 @@ export const DataPanel: React.FC<DataPanelProps> = ({ rowsRef }) => {
   const colTree = useMemo(() => buildColTree(allColumnKeys, columnFields), [allColumnKeys, columnFields]);
   const visibleCols = useMemo(() => flattenVisibleCols(colTree, expandedColsSet), [colTree, expandedColsSet]);
 
-  // Build row hierarchy from actual data
+ 
   const rowHierarchy = useMemo(() => {
     if (!rowFields.length || !valueField) return [];
     return groupRows(rowsRef.current ?? [], rowFields);
   }, [rowFields, valueField, rowsRef]);
 
-  // Flatten visible rows respecting expand state
   const visibleRows = useMemo(() => {
     const result: any[] = [];
     function traverse(nodes: any[], parentPath = "") {
@@ -200,7 +194,7 @@ export const DataPanel: React.FC<DataPanelProps> = ({ rowsRef }) => {
           </thead>
 
           <tbody>
-            {/* Grand total row */}
+          
             <tr className="grand-total-row">
               <td className="grand-total-label">Grand Total</td>
               {visibleCols.map((vc, i) => (

@@ -2,11 +2,12 @@ import { configureStore, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AggType, PivotCache } from "../types";
 
-// ─── dataSlice ────────────────────────────────────────────────────────────────
 interface DataState {
   columns: string[];
   columnTypes: Record<string, "numeric" | "string" | "date">;
 }
+
+//All available colValues I store here
 const dataSlice = createSlice({
   name: "data",
   initialState: { columns: [], columnTypes: {} } as DataState,
@@ -22,13 +23,14 @@ const dataSlice = createSlice({
   },
 });
 
-// ─── pivotSlice ───────────────────────────────────────────────────────────────
+
 interface PivotState {
   rowFields: string[];
   columnFields: string[];
   valueFields: string[];
   aggType: AggType;
 }
+//PivotSlice : for storing pivot table config. and handling changes 
 const pivotSlice = createSlice({
   name: "pivot",
   initialState: { rowFields: [], columnFields: [], valueFields: [], aggType: "sum" } as PivotState,
@@ -63,7 +65,8 @@ const pivotSlice = createSlice({
   },
 });
 
-// ─── uiSlice ──────────────────────────────────────────────────────────────────
+
+//UI: expand/colapse row or col, pagination 
 interface UIState {
   expandedRows: string[];
   expandedCols: string[];
@@ -99,7 +102,7 @@ const uiSlice = createSlice({
   },
 });
 
-// ─── cacheSlice ───────────────────────────────────────────────────────────────
+
 const cacheSlice = createSlice({
   name: "cache",
   initialState: {} as PivotCache,
@@ -113,7 +116,7 @@ const cacheSlice = createSlice({
   },
 });
 
-// ─── Store ────────────────────────────────────────────────────────────────────
+
 export const store = configureStore({
   reducer: {
     data: dataSlice.reducer,

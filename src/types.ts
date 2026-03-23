@@ -20,8 +20,6 @@ export const AGG_LABELS: Record<AggType, string> = {
   median:        "Median",
 };
 
-// All 9 agg values precomputed for one (rowPath × colKey × valueField) cell
 export type AggBundle = Record<AggType, number | null>;
 
-// cache[rowGroupPath][colLeafKey][valueField] = AggBundle
 export type PivotCache = Record<string, Record<string, Record<string, AggBundle>>>;
