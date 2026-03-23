@@ -37,7 +37,7 @@ function makeBundle(values: number[]): AggBundle {
   return bundle;
 }
 
-// Recursively builds cache entries for every row group path
+// Recursively I build cache entries for every row group path
 function buildGroupCache(
   data: RowData[],
   rowFields: string[],
@@ -60,9 +60,7 @@ function buildGroupCache(
   Object.entries(grouped).forEach(([key, groupData]) => {
     const path = parentPath ? `${parentPath}|||${key}` : key;
 
-    // For each valueField × colKey, compute bundle
     valueFields.forEach((valueField) => {
-      // Build col buckets: colKey -> number[]
       const colBuckets: Record<string, number[]> = {};
 
       groupData.forEach((row) => {
@@ -76,7 +74,6 @@ function buildGroupCache(
         }
       });
 
-      // Also compute __total__ across all cols
       const allVals = groupData
         .map((r) => Number(r[valueField]))
         .filter((v) => !isNaN(v));
@@ -89,7 +86,6 @@ function buildGroupCache(
       });
     });
 
-    // Recurse into children
     buildGroupCache(groupData, rowFields, columnFields, valueFields, cache, level + 1, path);
   });
 }
@@ -104,7 +100,6 @@ export function buildPivotCache(
 
   const cache: PivotCache = {};
 
-  // Grand total row (path = "__grand__")
   valueFields.forEach((valueField) => {
     const colBuckets: Record<string, number[]> = {};
     rows.forEach((row) => {
