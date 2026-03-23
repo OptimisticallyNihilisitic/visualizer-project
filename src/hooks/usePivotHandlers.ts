@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { dataActions, pivotActions, uiActions, cacheActions } from "../store/store";
+import { pivotActions, uiActions, cacheActions } from "../store/store";
 import { getPivotCache } from "../utils/pivotUtils";
 import { parseFile } from "../utils/fileUtils";
 
@@ -19,7 +19,12 @@ export function usePivotHandlers() {
     columnFields: string[],
     valueFields: string[]
   ) => {
-    const cache = getPivotCache(rowsRef.current, rowFields, columnFields, valueFields);
+    const cache = getPivotCache(
+      rowsRef.current,
+      rowFields,
+      columnFields,
+      valueFields
+    );
 
     if (!cache) {
       dispatch(cacheActions.clearCache());
@@ -46,7 +51,8 @@ export function usePivotHandlers() {
 
       const cols = Object.keys(jsonData[0]);
 
-      dispatch(dataActions.setColumns({ columns: cols, }));
+      dispatch(pivotActions.setColumns({ columns: cols }));
+
       dispatch(pivotActions.resetPivot());
       dispatch(uiActions.resetUI());
       dispatch(cacheActions.clearCache());

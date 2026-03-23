@@ -20,7 +20,8 @@ export default function App() {
   } = usePivotHandlers();
 
   const pivotState = useAppSelector((s) => s.pivot);
-  const columns = useAppSelector((s) => s.data.columns);
+  
+  const columns = useAppSelector((s) => s.pivot.columns);
 
   const usedFields = new Set([
     ...pivotState.rowFields,
@@ -35,7 +36,12 @@ export default function App() {
       <div className="top-bar">
         <label className="custom-file-upload">
           ↑ Upload File
-          <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileChange} hidden />
+          <input
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={handleFileChange}
+            hidden
+          />
         </label>
       </div>
 
@@ -58,7 +64,9 @@ export default function App() {
         </div>
 
         <DragOverlay dropAnimation={null}>
-          {activeField ? <div className="drag-overlay">{activeField}</div> : null}
+          {activeField ? (
+            <div className="drag-overlay">{activeField}</div>
+          ) : null}
         </DragOverlay>
       </DndContext>
     </div>

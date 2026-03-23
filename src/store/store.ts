@@ -2,55 +2,58 @@ import { configureStore, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AggType, PivotCache } from "../types";
 
-interface DataState {
+// PIVOT + DATA 
+interface PivotState {
   columns: string[];
   columnTypes: Record<string, "numeric" | "string" | "date">;
-}
-
-//Raw data: 
-const dataSlice = createSlice({
-  name: "data",
-  initialState: { columns: [], columnTypes: {} } as DataState,
-  reducers: {
-    setColumns(state, action: PayloadAction<{ columns: string[]; }>) {
-      state.columns = action.payload.columns;
-    },
-    clearData(state) {
-      state.columns = [];
-    },
-  },
-});
-
-
-interface PivotState {
   rowFields: string[];
   columnFields: string[];
   valueFields: string[];
   aggType: AggType;
 }
 
-//Pivot Table : for storing pivot table config. and handling changes 
 const pivotSlice = createSlice({
   name: "pivot",
-  initialState: { rowFields: [], columnFields: [], valueFields: [], aggType: "sum" } as PivotState,
+  initialState: {
+    columns: [],
+    columnTypes: {},
+    rowFields: [],
+    columnFields: [],
+    valueFields: [],
+    aggType: "sum",
+  } as PivotState,
+
   reducers: {
+    setColumns(state, action: PayloadAction<{ columns: string[] }>) {
+      state.columns = action.payload.columns;
+    },
+    clearData(state) {
+      state.columns = [];
+      state.columnTypes = {};
+    },
     addRowField(state, action: PayloadAction<string>) {
-      if (!state.rowFields.includes(action.payload)) state.rowFields.push(action.payload);
+      if (!state.rowFields.includes(action.payload)) {
+        state.rowFields.push(action.payload);
+      }
     },
     addColumnField(state, action: PayloadAction<string>) {
-      if (!state.columnFields.includes(action.payload)) state.columnFields.push(action.payload);
+      if (!state.columnFields.includes(action.payload)) {
+        state.columnFields.push(action.payload);
+      }
     },
     addValueField(state, action: PayloadAction<string>) {
-      if (!state.valueFields.includes(action.payload)) state.valueFields.push(action.payload);
+      if (!state.valueFields.includes(action.payload)) {
+        state.valueFields.push(action.payload);
+      }
     },
     removeRowField(state, action: PayloadAction<string>) {
-      state.rowFields = state.rowFields.filter((f) => f !== action.payload);
+      state.rowFields = state.rowFields.filter(f => f !== action.payload);
     },
     removeColumnField(state, action: PayloadAction<string>) {
-      state.columnFields = state.columnFields.filter((f) => f !== action.payload);
+      state.columnFields = state.columnFields.filter(f => f !== action.payload);
     },
     removeValueField(state, action: PayloadAction<string>) {
-      state.valueFields = state.valueFields.filter((f) => f !== action.payload);
+      state.valueFields = state.valueFields.filter(f => f !== action.payload);
     },
     setAggType(state, action: PayloadAction<AggType>) {
       state.aggType = action.payload;
@@ -65,16 +68,23 @@ const pivotSlice = createSlice({
 });
 
 
-//UI: expand/colapse row or col, pagination 
+// UI
 interface UIState {
   expandedRows: string[];
   expandedCols: string[];
   page: number;
   rowsPerPage: number;
 }
+
 const uiSlice = createSlice({
   name: "ui",
-  initialState: { expandedRows: [], expandedCols: [], page: 1, rowsPerPage: 25 } as UIState,
+  initialState: {
+    expandedRows: [],
+    expandedCols: [],
+    page: 1,
+    rowsPerPage: 25,
+  } as UIState,
+
   reducers: {
     toggleExpandedRow(state, action: PayloadAction<string>) {
       const idx = state.expandedRows.indexOf(action.payload);
@@ -101,7 +111,7 @@ const uiSlice = createSlice({
   },
 });
 
-//Cache:
+// Cache
 const cacheSlice = createSlice({
   name: "cache",
   initialState: {} as PivotCache,
@@ -118,14 +128,12 @@ const cacheSlice = createSlice({
 
 export const store = configureStore({
   reducer: {
-    data: dataSlice.reducer,
     pivot: pivotSlice.reducer,
     ui: uiSlice.reducer,
     cache: cacheSlice.reducer,
   },
 });
 
-export const dataActions = dataSlice.actions;
 export const pivotActions = pivotSlice.actions;
 export const uiActions = uiSlice.actions;
 export const cacheActions = cacheSlice.actions;
